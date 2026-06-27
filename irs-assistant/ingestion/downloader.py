@@ -66,6 +66,36 @@ DOCUMENT_SOURCES: list[DocumentSource] = [
         fiscal_year=2024,
         doc_type=DocType.PDF,
     ),
+    # High priority: deadlines and tax calendar
+    DocumentSource(
+        url="https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Folhetos_informativos/Documents/IRS_2025_Principais_prazos_2026.pdf",
+        filename="irs_prazos_2025.pdf",
+        source_doc_name="Principais Prazos IRS 2025",
+        fiscal_year=2025,
+        doc_type=DocType.PDF,
+    ),
+    DocumentSource(
+        url="https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/calendario_fiscal/Documents/Obrigacoes_declarativas.pdf",
+        filename="agenda_fiscal_2025_declarativa.pdf",
+        source_doc_name="Agenda Fiscal 2025 - Obrigações Declarativas",
+        fiscal_year=2025,
+        doc_type=DocType.PDF,
+    ),
+    # Medium priority: tax benefits statute and administrative guidance
+    DocumentSource(
+        url="https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/Cod_download/Documents/EBF.pdf",
+        filename="ebf_2024.pdf",
+        source_doc_name="Estatuto dos Benefícios Fiscais (EBF)",
+        fiscal_year=2024,
+        doc_type=DocType.PDF,
+    ),
+    DocumentSource(
+        url="https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/legislacao/instrucoes_administrativas/Documents/Oficio_circulado_20269_2024.pdf",
+        filename="oficio_circulado_20269_2024.pdf",
+        source_doc_name="Ofício Circulado 20269/2024 (IRS)",
+        fiscal_year=2024,
+        doc_type=DocType.PDF,
+    ),
 ]
 
 
