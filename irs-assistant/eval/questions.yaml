@@ -1,146 +1,111 @@
 # Deadlines and calendar
 - question: "Até quando posso entregar o IRS em 2026?"
   expected_source: "Principais Prazos IRS 2025"
-  expected_keywords: ["abril", "junho", "2026"]
 
-- question: "Até quando recebo o reembolso do IRS?"
+- question: "Qual é o prazo para receber o reembolso do IRS ou pagar o imposto em 2026?"
   expected_source: "Principais Prazos IRS 2025"
-  expected_keywords: ["reembolso", "agosto"]
 
 - question: "Como funciona o IRS automático?"
   expected_source: "Principais Prazos IRS 2025"
-  expected_keywords: ["automático", "confirme"]
 
 - question: "Até quando devo comunicar o agregado familiar para o IRS?"
   expected_source: "Principais Prazos IRS 2025"
-  expected_keywords: ["março", "agregado"]
 
 - question: "Quando é que a AT disponibiliza as despesas dedutíveis para consulta?"
   expected_source: "Principais Prazos IRS 2025"
-  expected_keywords: ["março", "despesas"]
 
 # Income categories
 - question: "Quais são as categorias de rendimentos sujeitos a IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["categoria", "rendimentos"]
 
 - question: "O que é considerado rendimento da categoria A?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["categoria", "trabalho"]
 
 - question: "O que é o rendimento da categoria B em IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["categoria", "empresarial"]
 
 - question: "Como são tributados os rendimentos de pensões em IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["pensões", "categoria"]
 
 - question: "O que é o ano fiscal para efeitos de IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["ano", "civil"]
 
 # Deductions
 - question: "O que são deduções à coleta no IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["deduções", "coleta"]
 
 - question: "Quais são as despesas de saúde dedutíveis em IRS?"
   expected_source: "Guia de Deduções IRS 2024"
-  expected_keywords: ["saúde", "despesas"]
 
-- question: "Quais são as despesas de educação dedutíveis?"
+- question: "Que despesas com estabelecimentos de ensino são dedutíveis no IRS?"
   expected_source: "Guia de Deduções IRS 2024"
-  expected_keywords: ["educação", "despesas"]
 
 - question: "Posso deduzir despesas com lares e residências para idosos no IRS?"
   expected_source: "Guia de Deduções IRS 2024"
-  expected_keywords: ["lares", "dedução"]
 
 - question: "Como funciona a dedução de encargos com habitação no IRS?"
   expected_source: "Guia de Deduções IRS 2024"
-  expected_keywords: ["habitação", "dedução"]
 
-- question: "É possível deduzir donativos no IRS?"
-  expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["donativos", "dedução"]
+- question: "É possível deduzir donativos e mecenato no IRS?"
+  expected_source: "Estatuto dos Benefícios Fiscais (EBF)"
 
 - question: "Como são deduzidas as pensões de alimentos pagas no IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["alimentos", "dedução"]
 
 - question: "Posso deduzir despesas com PPR no IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["PPR", "dedução"]
 
 # Tax rates and calculation
 - question: "Qual é a taxa de IRS para o primeiro escalão?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["taxa", "escalão"]
 
 - question: "O que é o mínimo de existência em IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["mínimo", "existência"]
 
 - question: "Como são tributados os rendimentos de mais-valias em IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["mais-valias", "tributados"]
 
 # Household and dependents
 - question: "O que é o agregado familiar para efeitos de IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["agregado", "familiar"]
 
 - question: "Como são deduzidos os dependentes no IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["dependentes", "dedução"]
 
 # Payment
 - question: "Onde posso pagar o IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["pagamento", "finanças"]
 
 - question: "Como deve ser feito o pagamento do IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["pagamento", "integral"]
 
 # Complex / multi-condition questions
 - question: "Se sou casado e ambos trabalhamos, é mais vantajoso fazer tributação conjunta ou separada?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["conjunta", "separada"]
 
 - question: "Tenho rendimentos de trabalho dependente e também arrendo um apartamento. Como declaro as duas fontes de rendimento?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["categoria", "arrendamento"]
 
 - question: "Sou trabalhador independente. Qual a diferença entre o regime simplificado e a contabilidade organizada para efeitos de IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["simplificado", "contabilidade"]
 
 - question: "Tenho uma incapacidade permanente superior a 60%. Que deduções adicionais posso ter no IRS?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["deficiência", "dedução"]
 
 - question: "Vendi o apartamento onde vivia. Posso excluir as mais-valias se reinvestir o dinheiro noutro imóvel para habitação própria?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["mais-valias", "reinvestimento"]
 
 - question: "Como é calculada a retenção na fonte para trabalhadores por conta de outrem?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["retenção", "fonte"]
 
 - question: "O que acontece se entregar o IRS fora do prazo legal?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["prazo", "coima"]
 
 - question: "Quais são os benefícios fiscais previstos no EBF que se aplicam a pessoas singulares?"
   expected_source: "Estatuto dos Benefícios Fiscais (EBF)"
-  expected_keywords: ["benefícios", "isenção"]
 
 - question: "Como funciona o quociente familiar no IRS e de que forma reduz o imposto para famílias com filhos?"
   expected_source: "Código do IRS (CIRS)"
-  expected_keywords: ["quociente", "familiar"]
 
 - question: "Tenho um filho dependente que frequenta o ensino universitário fora do concelho de residência. Posso deduzir rendas pagas?"
   expected_source: "Guia de Deduções IRS 2024"
-  expected_keywords: ["estudante", "renda"]

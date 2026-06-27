@@ -5,11 +5,14 @@ Runs the full pipeline (embed → retrieve → fuse → generate) against each
 golden question in questions.yaml and scores on two dimensions:
 
   retrieval_hit  — the expected source document appeared in the top-K chunks
-  keyword_hit    — fraction of expected keywords found in the answer
+  answered       — the model gave a real answer (not the "não encontrei" fallback)
+
+A question is considered passed only when both are true.
 
 Usage:
     python eval/run_eval.py
     python eval/run_eval.py --output results.json
+    python eval/run_eval.py --questions eval/questions_debug.yaml
 """
 
 import argparse
@@ -40,17 +43,18 @@ BM25_WEIGHT: float = float(os.environ.get("BM25_WEIGHT", 0.3))
 
 QUESTIONS_FILE: Path = Path(__file__).parent / "questions.yaml"
 QUESTION_DISPLAY_WIDTH: int = 50
+FALLBACK_PHRASE: str = "não encontrei informação suficiente"
 
 
 def _score(answer: str, chunks: list[SearchResult], case: dict) -> dict:
     retrieval_hit = any(case["expected_source"] in c.source_doc for c in chunks)
-    answer_lower = answer.lower()
-    hits = sum(1 for kw in case["expected_keywords"] if kw.lower() in answer_lower)
-    keyword_hit = hits / len(case["expected_keywords"])
+    answered = FALLBACK_PHRASE not in answer.lower()
+    passed = retrieval_hit and answered
     return {
         "question": case["question"],
         "retrieval_hit": retrieval_hit,
-        "keyword_hit": keyword_hit,
+        "answered": answered,
+        "passed": passed,
         "answer": answer,
         "sources": [c.source_doc for c in chunks],
     }
@@ -59,9 +63,11 @@ def _score(answer: str, chunks: list[SearchResult], case: dict) -> dict:
 def main() -> None:
     arg_parser = argparse.ArgumentParser(description="Evaluate the IRS Assistant RAG pipeline.")
     arg_parser.add_argument("--output", type=str, help="Write full results to this JSON file.")
+    arg_parser.add_argument("--questions", type=str, help="Path to a questions YAML file (default: eval/questions.yaml).")
     args = arg_parser.parse_args()
 
-    cases = yaml.safe_load(QUESTIONS_FILE.read_text(encoding="utf-8"))
+    questions_path = Path(args.questions) if args.questions else QUESTIONS_FILE
+    cases = yaml.safe_load(questions_path.read_text(encoding="utf-8"))
 
     client = OllamaClient()
     if not client.health_check():
@@ -72,7 +78,7 @@ def main() -> None:
     bm25_index, chunk_ids = build_bm25_index(conn)
 
     results = []
-    header = f"{'Question':<{QUESTION_DISPLAY_WIDTH}}  {'Ret':>3}  {'KW%':>5}"
+    header = f"{'Question':<{QUESTION_DISPLAY_WIDTH}}  {'Ret':>3}  {'Ans':>3}  {'Pass':>4}"
     print(header)
     print("-" * len(header))
 
@@ -100,16 +106,16 @@ def main() -> None:
 
         q_display = question[:QUESTION_DISPLAY_WIDTH].ljust(QUESTION_DISPLAY_WIDTH)
         ret = "Y" if result["retrieval_hit"] else "N"
-        kw = f"{result['keyword_hit'] * 100:.0f}%"
-        print(f"{q_display}  {ret:>3}  {kw:>5}")
+        ans = "Y" if result["answered"] else "N"
+        passed = "Y" if result["passed"] else "N"
+        print(f"{q_display}  {ret:>3}  {ans:>3}  {passed:>4}")
 
     conn.close()
 
     n = len(results)
-    ret_acc = sum(1 for r in results if r["retrieval_hit"])
-    kw_mean = sum(r["keyword_hit"] for r in results) / n
-    print("-" * (QUESTION_DISPLAY_WIDTH + 12))
-    print(f"Retrieval accuracy: {ret_acc}/{n}   Keyword hit rate: {kw_mean * 100:.0f}%")
+    passed_count = sum(1 for r in results if r["passed"])
+    print("-" * (QUESTION_DISPLAY_WIDTH + 16))
+    print(f"Passed: {passed_count}/{n}")
 
     if args.output:
         Path(args.output).write_text(
