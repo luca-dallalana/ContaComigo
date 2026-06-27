@@ -23,11 +23,15 @@ TOP_K: int = int(os.environ.get("TOP_K", 5))
 VECTOR_WEIGHT: float = float(os.environ.get("VECTOR_WEIGHT", 0.7))
 BM25_WEIGHT: float = float(os.environ.get("BM25_WEIGHT", 0.3))
 
+from feedback.store import init_db, save_feedback
 from generation.ollama_client import OllamaClient, OllamaConnectionError
 from generation.prompt import build_prompt
 from retrieval.bm25_search import bm25_search, build_bm25_index
 from retrieval.fusion import reciprocal_rank_fusion
 from retrieval.vector_search import embed_query, vector_search
+
+FEEDBACK_DB: str = os.environ.get("FEEDBACK_DB", "feedback.sqlite")
+init_db(FEEDBACK_DB)
 
 
 @st.cache_resource
@@ -53,10 +57,24 @@ client, conn, bm25_index, chunk_ids = _get_resources()
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
+if "rated" not in st.session_state:
+    st.session_state["rated"] = set()
 
-for msg in st.session_state["messages"]:
+for i, msg in enumerate(st.session_state["messages"]):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
+    if msg["role"] == "assistant" and i not in st.session_state["rated"]:
+        col1, col2, _ = st.columns([1, 1, 8])
+        with col1:
+            if st.button("Util", key=f"up_{i}"):
+                save_feedback(FEEDBACK_DB, msg["question"], msg["content"], msg["sources"], 1)
+                st.session_state["rated"].add(i)
+                st.rerun()
+        with col2:
+            if st.button("Nao util", key=f"down_{i}"):
+                save_feedback(FEEDBACK_DB, msg["question"], msg["content"], msg["sources"], -1)
+                st.session_state["rated"].add(i)
+                st.rerun()
 
 if question := st.chat_input("Faz uma pergunta sobre IRS..."):
     st.session_state["messages"].append({"role": "user", "content": question})
@@ -88,6 +106,11 @@ if question := st.chat_input("Faz uma pergunta sobre IRS..."):
                     chunk.content[:300] + ("…" if len(chunk.content) > 300 else "")
                 )
 
-    st.session_state["messages"].append(
-        {"role": "assistant", "content": response_text}
-    )
+    st.session_state["messages"].append({
+        "role": "assistant",
+        "content": response_text,
+        "question": question,
+        "sources": [
+            f"{c.source_doc} — {c.article or 'Secção geral'}" for c in chunks
+        ],
+    })
