@@ -32,7 +32,7 @@ from ingestion.downloader import (
     download_documents,
 )
 from ingestion.embedder import embed_chunks, store_chunks
-from ingestion.parser import parse_html, parse_pdf
+from ingestion.parser import parse_calendar_pdf, parse_html, parse_pdf
 
 load_dotenv()
 
@@ -170,6 +170,8 @@ def main() -> None:
 
             if source.doc_type == DocType.PDF:
                 raw_chunks = parse_pdf(filepath, source)
+            elif source.doc_type == DocType.CALENDAR:
+                raw_chunks = parse_calendar_pdf(filepath, source)
             else:
                 raw_chunks = parse_html(filepath, source)
 

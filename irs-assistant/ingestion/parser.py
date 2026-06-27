@@ -23,6 +23,18 @@ ARTICLE_REGEX: re.Pattern = re.compile(r"Artigo\s+\d+[\.º°]\s*[A-Z\-]*")
 SECTION_REGEX: re.Pattern = re.compile(
     r"(?:CAPÍTULO|SECÇÃO|TÍTULO)\s+[IVXivx\d]+"
 )
+_MONTH_PT: str = (
+    r"(?:JANEIRO|FEVEREIRO|MARÇO|ABRIL|MAIO|JUNHO"
+    r"|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)"
+)
+_YEAR_OPT: str = r"(?:\s+DE\s+\d{4})?"
+DEADLINE_REGEX: re.Pattern = re.compile(
+    r"("
+    + rf"ATÉ\s+(?:AO\s+(?:DIA\s+\d+|FINAL\s+DE\s+{_MONTH_PT}{_YEAR_OPT})|\d+\s+DE\s+{_MONTH_PT}{_YEAR_OPT})"
+    + r"|"
+    + rf"DE\s+(?:\d+\s+A\s+\d+\s+DE\s+{_MONTH_PT}{_YEAR_OPT}|{_MONTH_PT}\s+A\s+{_MONTH_PT}{_YEAR_OPT})"
+    + r")"
+)
 MIN_CHUNK_CHARS: int = 20
 
 SKIP_TAGS: frozenset = frozenset(
@@ -148,6 +160,75 @@ def parse_pdf(filepath: Path, source: DocumentSource) -> list[RawChunk]:
             buffer.append(remaining)
 
     _flush()
+
+    logger.info("Parsed %d raw chunks from '%s'.", len(chunks), filepath.name)
+    return chunks
+
+
+def parse_calendar_pdf(filepath: Path, source: DocumentSource) -> list[RawChunk]:
+    """Parse a deadline/calendar PDF into one RawChunk per deadline entry.
+
+    Splits on "ATÉ [date]" patterns rather than article headings. Each chunk
+    is self-contained: the deadline date is stored in the article field so
+    format_chunks displays it as the label (e.g. "ATÉ 30 DE JUNHO DE 2026").
+
+    Args:
+        filepath: Path to the PDF file.
+        source: DocumentSource metadata for this file.
+
+    Returns:
+        List of RawChunk objects, one per detected deadline entry.
+    """
+    reader = pypdf.PdfReader(str(filepath))
+    full_text = " ".join((page.extract_text() or "") for page in reader.pages)
+
+    parts = re.split(DEADLINE_REGEX, full_text)
+
+    chunks: list[RawChunk] = []
+    preamble = parts[0].strip()
+    if len(preamble) >= MIN_CHUNK_CHARS:
+        chunks.append(
+            RawChunk(
+                content=preamble,
+                source_doc=source.source_doc_name,
+                article=None,
+                section=None,
+                page_number=None,
+                fiscal_year=source.fiscal_year,
+            )
+        )
+
+    i = 1
+    while i + 1 < len(parts):
+        deadline_header = parts[i].strip()
+        deadline_body = parts[i + 1].strip()
+        # Append the next date header as a look-ahead so the chunk contains both
+        # the action body and the deadline date that closes it. This is necessary
+        # because AT documents list the action first, then the date ("ENTREGUE O IRS
+        # ... DE ABRIL A JUNHO DE 2026"), so without look-ahead the date would be
+        # isolated in the following chunk's header with no action context.
+        next_date = parts[i + 2].strip() if i + 2 < len(parts) else ""
+        if next_date:
+            # AT calendar documents list the action body before its closing date.
+            # Put the closing date first so the chunk reads naturally: when → what.
+            combined = f"{next_date}\n{deadline_body}"
+            article_label = next_date
+        else:
+            combined = f"{deadline_header}\n{deadline_body}"
+            article_label = deadline_header
+        combined = combined.strip()
+        if len(combined) >= MIN_CHUNK_CHARS:
+            chunks.append(
+                RawChunk(
+                    content=combined,
+                    source_doc=source.source_doc_name,
+                    article=article_label,
+                    section=None,
+                    page_number=None,
+                    fiscal_year=source.fiscal_year,
+                )
+            )
+        i += 2
 
     logger.info("Parsed %d raw chunks from '%s'.", len(chunks), filepath.name)
     return chunks

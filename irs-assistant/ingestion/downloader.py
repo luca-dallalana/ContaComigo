@@ -30,6 +30,7 @@ USER_AGENT: str = (
 class DocType(Enum):
     PDF = "pdf"
     HTML = "html"
+    CALENDAR = "calendar"
 
 
 @dataclass
@@ -72,14 +73,14 @@ DOCUMENT_SOURCES: list[DocumentSource] = [
         filename="irs_prazos_2025.pdf",
         source_doc_name="Principais Prazos IRS 2025",
         fiscal_year=2025,
-        doc_type=DocType.PDF,
+        doc_type=DocType.CALENDAR,
     ),
     DocumentSource(
         url="https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/calendario_fiscal/Documents/Obrigacoes_declarativas.pdf",
         filename="agenda_fiscal_2025_declarativa.pdf",
         source_doc_name="Agenda Fiscal 2025 - Obrigações Declarativas",
         fiscal_year=2025,
-        doc_type=DocType.PDF,
+        doc_type=DocType.CALENDAR,
     ),
     # Medium priority: tax benefits statute and administrative guidance
     DocumentSource(
