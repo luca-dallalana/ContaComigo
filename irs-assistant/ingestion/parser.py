@@ -35,6 +35,9 @@ DEADLINE_REGEX: re.Pattern = re.compile(
     + rf"DE\s+(?:\d+\s+A\s+\d+\s+DE\s+{_MONTH_PT}{_YEAR_OPT}|{_MONTH_PT}\s+A\s+{_MONTH_PT}{_YEAR_OPT})"
     + r")"
 )
+_ALL_CAPS_LINE: re.Pattern = re.compile(
+    r"(?m)^([A-ZÁÉÍÓÚÀÃÕÇÜ][A-ZÁÉÍÓÚÀÃÕÇÜ\s\d\/\.,\-]{3,})\s*$"
+)
 MIN_CHUNK_CHARS: int = 20
 
 SKIP_TAGS: frozenset = frozenset(
@@ -180,7 +183,7 @@ def parse_calendar_pdf(filepath: Path, source: DocumentSource) -> list[RawChunk]
         List of RawChunk objects, one per detected deadline entry.
     """
     reader = pypdf.PdfReader(str(filepath))
-    full_text = " ".join((page.extract_text() or "") for page in reader.pages)
+    full_text = "\n".join((page.extract_text() or "") for page in reader.pages)
 
     parts = re.split(DEADLINE_REGEX, full_text)
 
@@ -202,32 +205,48 @@ def parse_calendar_pdf(filepath: Path, source: DocumentSource) -> list[RawChunk]
     while i + 1 < len(parts):
         deadline_header = parts[i].strip()
         deadline_body = parts[i + 1].strip()
-        # Append the next date header as a look-ahead so the chunk contains both
-        # the action body and the deadline date that closes it. This is necessary
-        # because AT documents list the action first, then the date ("ENTREGUE O IRS
-        # ... DE ABRIL A JUNHO DE 2026"), so without look-ahead the date would be
-        # isolated in the following chunk's header with no action context.
+        # AT documents list the action BEFORE the closing date, so the closing date
+        # for this body is the NEXT date boundary (look-ahead).
         next_date = parts[i + 2].strip() if i + 2 < len(parts) else ""
-        if next_date:
-            # AT calendar documents list the action body before its closing date.
-            # Put the closing date first so the chunk reads naturally: when → what.
-            combined = f"{next_date}\n{deadline_body}"
-            article_label = next_date
-        else:
-            combined = f"{deadline_header}\n{deadline_body}"
-            article_label = deadline_header
-        combined = combined.strip()
-        if len(combined) >= MIN_CHUNK_CHARS:
-            chunks.append(
-                RawChunk(
-                    content=combined,
-                    source_doc=source.source_doc_name,
-                    article=article_label,
-                    section=None,
-                    page_number=None,
-                    fiscal_year=source.fiscal_year,
+        closing_date = next_date if next_date else deadline_header
+
+        # Second-level split: within each date body, split on all-caps action
+        # header lines so each action becomes its own chunk.
+        sub_parts = re.split(_ALL_CAPS_LINE, deadline_body)
+        produced = False
+        j = 1
+        while j + 1 < len(sub_parts):
+            action_header = sub_parts[j].strip()
+            action_body = sub_parts[j + 1].strip()
+            combined = f"{closing_date}\n{action_header}\n{action_body}".strip()
+            if len(combined) >= MIN_CHUNK_CHARS:
+                chunks.append(
+                    RawChunk(
+                        content=combined,
+                        source_doc=source.source_doc_name,
+                        article=closing_date,
+                        section=None,
+                        page_number=None,
+                        fiscal_year=source.fiscal_year,
+                    )
                 )
-            )
+                produced = True
+            j += 2
+
+        if not produced:
+            combined = f"{closing_date}\n{deadline_body}".strip()
+            if len(combined) >= MIN_CHUNK_CHARS:
+                chunks.append(
+                    RawChunk(
+                        content=combined,
+                        source_doc=source.source_doc_name,
+                        article=closing_date,
+                        section=None,
+                        page_number=None,
+                        fiscal_year=source.fiscal_year,
+                    )
+                )
+
         i += 2
 
     logger.info("Parsed %d raw chunks from '%s'.", len(chunks), filepath.name)
