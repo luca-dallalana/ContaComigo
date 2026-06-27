@@ -75,13 +75,6 @@ DOCUMENT_SOURCES: list[DocumentSource] = [
         fiscal_year=2025,
         doc_type=DocType.CALENDAR,
     ),
-    DocumentSource(
-        url="https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/calendario_fiscal/Documents/Obrigacoes_declarativas.pdf",
-        filename="agenda_fiscal_2025_declarativa.pdf",
-        source_doc_name="Agenda Fiscal 2025 - Obrigações Declarativas",
-        fiscal_year=2025,
-        doc_type=DocType.CALENDAR,
-    ),
     # Medium priority: tax benefits statute and administrative guidance
     DocumentSource(
         url="https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/Cod_download/Documents/EBF.pdf",
