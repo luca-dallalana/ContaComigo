@@ -5,3 +5,6 @@ __pycache__/
 data/
 *.sqlite
 .env
+infra/terraform.tfstate*
+infra/.terraform/
+eval/results*.json
