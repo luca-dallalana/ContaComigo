@@ -24,7 +24,8 @@ VECTOR_WEIGHT: float = float(os.environ.get("VECTOR_WEIGHT", 0.7))
 BM25_WEIGHT: float = float(os.environ.get("BM25_WEIGHT", 0.3))
 
 from feedback.store import init_db, save_feedback
-from generation.ollama_client import OllamaClient, OllamaConnectionError
+from generation.client_factory import get_generation_client
+from generation.ollama_client import OllamaConnectionError
 from generation.prompt import build_prompt
 from retrieval.bm25_search import bm25_search, build_bm25_index
 from retrieval.fusion import reciprocal_rank_fusion
@@ -36,7 +37,7 @@ init_db(FEEDBACK_DB)
 
 @st.cache_resource
 def _get_resources():
-    client = OllamaClient()
+    client = get_generation_client()
     if not client.health_check():
         st.error("Ollama não está acessível ou os modelos necessários não estão instalados.")
         st.stop()

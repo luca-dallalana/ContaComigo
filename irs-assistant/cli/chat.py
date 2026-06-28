@@ -19,7 +19,8 @@ TOP_K: int = int(os.environ.get("TOP_K", 5))
 VECTOR_WEIGHT: float = float(os.environ.get("VECTOR_WEIGHT", 0.7))
 BM25_WEIGHT: float = float(os.environ.get("BM25_WEIGHT", 0.3))
 
-from generation.ollama_client import OllamaClient, OllamaConnectionError
+from generation.client_factory import get_generation_client
+from generation.ollama_client import OllamaConnectionError
 from generation.prompt import build_prompt
 from retrieval.bm25_search import build_bm25_index, bm25_search
 from retrieval.fusion import reciprocal_rank_fusion
@@ -34,7 +35,7 @@ EXIT_WORDS = {"sair", "exit", "quit"}
 
 
 def main() -> None:
-    client = OllamaClient()
+    client = get_generation_client()
 
     if not client.health_check():
         print("Erro: Ollama não está acessível ou os modelos necessários não estão instalados.")
