@@ -28,7 +28,8 @@ from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from generation.ollama_client import OllamaClient, OllamaConnectionError
+from generation.client_factory import get_generation_client
+from generation.ollama_client import OllamaConnectionError
 from generation.prompt import build_prompt
 from retrieval.bm25_search import bm25_search, build_bm25_index
 from retrieval.fusion import reciprocal_rank_fusion
@@ -48,7 +49,7 @@ FALLBACK_PHRASE: str = "não encontrei informação suficiente"
 
 def _score(answer: str, chunks: list[SearchResult], case: dict) -> dict:
     retrieval_hit = any(case["expected_source"] in c.source_doc for c in chunks)
-    answered = FALLBACK_PHRASE not in answer.lower()
+    answered = bool(answer) and FALLBACK_PHRASE not in answer.lower()
     passed = retrieval_hit and answered
     return {
         "question": case["question"],
@@ -69,7 +70,7 @@ def main() -> None:
     questions_path = Path(args.questions) if args.questions else QUESTIONS_FILE
     cases = yaml.safe_load(questions_path.read_text(encoding="utf-8"))
 
-    client = OllamaClient()
+    client = get_generation_client()
     if not client.health_check():
         print("ERROR: Ollama is not reachable or required models are missing.")
         sys.exit(1)

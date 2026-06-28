@@ -53,7 +53,7 @@
   expected_source: "Código do IRS (CIRS)"
 
 - question: "Posso deduzir despesas com PPR no IRS?"
-  expected_source: "Código do IRS (CIRS)"
+  expected_source: "Estatuto dos Benefícios Fiscais (EBF)"
 
 # Tax rates and calculation
 - question: "Qual é a taxa de IRS para o primeiro escalão?"
