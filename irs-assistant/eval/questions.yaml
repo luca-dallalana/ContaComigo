@@ -101,7 +101,7 @@
 - question: "O que acontece se entregar o IRS fora do prazo legal?"
   expected_source: "Código do IRS (CIRS)"
 
-- question: "Quais são os benefícios fiscais previstos no EBF que se aplicam a pessoas singulares?"
+- question: "O que é o Programa Semente e que benefício fiscal oferece a pessoas singulares que investem em startups?"
   expected_source: "Estatuto dos Benefícios Fiscais (EBF)"
 
 - question: "Como funciona o quociente familiar no IRS e de que forma reduz o imposto para famílias com filhos?"

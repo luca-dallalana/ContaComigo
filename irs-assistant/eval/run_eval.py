@@ -12,7 +12,7 @@ A question is considered passed only when both are true.
 Usage:
     python eval/run_eval.py
     python eval/run_eval.py --output results.json
-    python eval/run_eval.py --questions eval/questions_debug.yaml
+    python eval/run_eval.py --failed-from eval/results.json --delay 15 --output eval/results_groq.json
 """
 
 import argparse
@@ -65,10 +65,18 @@ def main() -> None:
     arg_parser = argparse.ArgumentParser(description="Evaluate the IRS Assistant RAG pipeline.")
     arg_parser.add_argument("--output", type=str, help="Write full results to this JSON file.")
     arg_parser.add_argument("--questions", type=str, help="Path to a questions YAML file (default: eval/questions.yaml).")
+    arg_parser.add_argument("--failed-from", type=str, help="Path to a previous results JSON; only re-run questions where passed=false.")
+    arg_parser.add_argument("--delay", type=float, default=0.0, help="Seconds to wait between questions (useful for rate-limited APIs).")
     args = arg_parser.parse_args()
 
     questions_path = Path(args.questions) if args.questions else QUESTIONS_FILE
     cases = yaml.safe_load(questions_path.read_text(encoding="utf-8"))
+
+    if args.failed_from:
+        previous = json.loads(Path(args.failed_from).read_text(encoding="utf-8"))
+        failed_questions = {r["question"] for r in previous if not r["passed"]}
+        cases = [c for c in cases if c["question"] in failed_questions]
+        print(f"Re-running {len(cases)} failed question(s) from {args.failed_from}")
 
     client = get_generation_client()
     if not client.health_check():
@@ -110,6 +118,9 @@ def main() -> None:
         ans = "Y" if result["answered"] else "N"
         passed = "Y" if result["passed"] else "N"
         print(f"{q_display}  {ret:>3}  {ans:>3}  {passed:>4}")
+
+        if args.delay and case is not cases[-1]:
+            time.sleep(args.delay)
 
     conn.close()
 
