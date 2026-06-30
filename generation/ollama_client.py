@@ -1,9 +1,8 @@
 """
-Ollama client for embedding and streaming text generation.
+Ollama client for streaming text generation.
 
-Provides OllamaClient with three methods: embed (query embedding),
-generate (streaming or single-shot generation), and health_check
-(verifies required models are installed).
+Provides OllamaClient with two methods: generate (streaming or single-shot
+generation) and health_check (verifies required models are installed).
 
 This module has no imports from the retrieval or ingestion packages.
 """
@@ -45,40 +44,6 @@ class OllamaClient:
     Stateless: no instance attributes, no pooled connections. All methods
     read module-level constants loaded from the environment at import time.
     """
-
-    def embed(self, text: str) -> list[float]:
-        """Embed a single string using the configured embedding model.
-
-        Args:
-            text: The text to embed.
-
-        Returns:
-            768-dimensional float vector.
-
-        Raises:
-            LLMConnectionError: if Ollama is unreachable after MAX_RETRIES attempts.
-        """
-        url = f"{OLLAMA_BASE_URL}{EMBED_ENDPOINT}"
-        payload = {"model": EMBED_MODEL, "input": [text]}
-
-        last_exc: Exception | None = None
-        for attempt in range(MAX_RETRIES):
-            try:
-                response = httpx.post(url, json=payload, timeout=EMBED_TIMEOUT)
-                response.raise_for_status()
-                return response.json()["embeddings"][0]
-            except (httpx.HTTPStatusError, httpx.RequestError) as exc:
-                last_exc = exc
-                logger.warning(
-                    "embed attempt %d/%d failed: %s. Retrying in %ds…",
-                    attempt + 1,
-                    MAX_RETRIES,
-                    exc,
-                    RETRY_DELAYS[attempt],
-                )
-                time.sleep(RETRY_DELAYS[attempt])
-
-        raise LLMConnectionError(OLLAMA_ERROR_MESSAGE) from last_exc
 
     def generate(
         self, prompt: str, stream: bool = True
@@ -149,7 +114,8 @@ class OllamaClient:
         url = f"{OLLAMA_BASE_URL}{TAGS_ENDPOINT}"
         try:
             response = httpx.get(url, timeout=HEALTH_TIMEOUT)
-        except httpx.RequestError as exc:
+            response.raise_for_status()
+        except (httpx.HTTPStatusError, httpx.RequestError) as exc:
             logger.error("Ollama não está acessível: %s", exc)
             return False
 

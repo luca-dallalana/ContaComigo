@@ -15,6 +15,7 @@ Usage:
 """
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -24,6 +25,8 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from retrieval.vector_search import embed_query
+
+_TOKEN_SPLIT_RE: re.Pattern = re.compile(r"\W+")
 
 load_dotenv()
 
@@ -51,7 +54,7 @@ CURATED_CHUNKS = [
         ),
         "source_doc": "Código do IRS (CIRS)",
         "article": "Artigo 68.",
-        "fiscal_year": 2024,
+        "fiscal_year": 2025,
         "chunk_index": CURATED_MARKER_START,
     },
     {
@@ -66,7 +69,7 @@ CURATED_CHUNKS = [
         ),
         "source_doc": "Código do IRS (CIRS)",
         "article": "Artigo 69.",
-        "fiscal_year": 2024,
+        "fiscal_year": 2025,
         "chunk_index": CURATED_MARKER_START + 1,
     },
     {
@@ -83,7 +86,7 @@ CURATED_CHUNKS = [
         ),
         "source_doc": "Código do IRS (CIRS)",
         "article": "Artigo 70.",
-        "fiscal_year": 2024,
+        "fiscal_year": 2025,
         "chunk_index": CURATED_MARKER_START + 2,
     },
     {
@@ -106,7 +109,7 @@ CURATED_CHUNKS = [
         ),
         "source_doc": "Código do IRS (CIRS)",
         "article": "Artigo 99.",
-        "fiscal_year": 2024,
+        "fiscal_year": 2025,
         "chunk_index": CURATED_MARKER_START + 3,
     },
     {
@@ -126,7 +129,7 @@ CURATED_CHUNKS = [
         ),
         "source_doc": "Estatuto dos Benefícios Fiscais (EBF)",
         "article": "Artigo 21.",
-        "fiscal_year": 2024,
+        "fiscal_year": 2025,
         "chunk_index": CURATED_MARKER_START + 4,
     },
 ]
@@ -136,6 +139,10 @@ def main() -> None:
     conn = psycopg2.connect(os.environ["POSTGRES_URL"])
     cur = conn.cursor()
 
+    cur.execute(
+        "DELETE FROM bm25_corpus WHERE chunk_id IN (SELECT id FROM chunks WHERE chunk_index >= %s)",
+        (CURATED_MARKER_START,),
+    )
     cur.execute("DELETE FROM chunks WHERE chunk_index >= %s", (CURATED_MARKER_START,))
     deleted = cur.rowcount
     if deleted:
@@ -147,6 +154,7 @@ def main() -> None:
             """
             INSERT INTO chunks (content, embedding, source_doc, article, section, page_number, fiscal_year, chunk_index)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
             """,
             (
                 chunk["content"],
@@ -158,6 +166,12 @@ def main() -> None:
                 chunk["fiscal_year"],
                 chunk["chunk_index"],
             ),
+        )
+        chunk_id = cur.fetchone()[0]
+        tokens = " ".join(t for t in _TOKEN_SPLIT_RE.split(chunk["content"].lower()) if t)
+        cur.execute(
+            "INSERT INTO bm25_corpus (chunk_id, tokens) VALUES (%s, %s)",
+            (chunk_id, tokens),
         )
         print(f"Inserted: {chunk['source_doc']} — {chunk['article']}")
 

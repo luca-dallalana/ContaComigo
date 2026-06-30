@@ -80,7 +80,7 @@ def main() -> None:
 
     client = get_generation_client()
     if not client.health_check():
-        print("ERROR: Ollama is not reachable or required models are missing.")
+        print("ERROR: Could not reach the language model backend. Check your configuration.")
         sys.exit(1)
 
     conn = psycopg2.connect(POSTGRES_URL)

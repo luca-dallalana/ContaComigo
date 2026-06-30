@@ -38,7 +38,7 @@ def main() -> None:
     client = get_generation_client()
 
     if not client.health_check():
-        print("Erro: Ollama não está acessível ou os modelos necessários não estão instalados.")
+        print("Erro: não foi possível ligar ao modelo de linguagem. Verifica a tua configuração.")
         sys.exit(1)
 
     try:
