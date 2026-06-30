@@ -25,7 +25,7 @@ BM25_WEIGHT: float = float(os.environ.get("BM25_WEIGHT", 0.3))
 
 from feedback.store import init_db, save_feedback
 from generation.client_factory import get_generation_client
-from generation.ollama_client import OllamaConnectionError
+from generation.errors import LLMConnectionError, LLMRateLimitError
 from generation.prompt import build_prompt
 from retrieval.bm25_search import bm25_search, build_bm25_index
 from retrieval.fusion import reciprocal_rank_fusion
@@ -94,8 +94,15 @@ if question := st.chat_input("Faz uma pergunta sobre IRS..."):
     with st.chat_message("assistant"):
         try:
             response_text = st.write_stream(client.generate(prompt, stream=True))
-        except OllamaConnectionError as exc:
-            st.error(str(exc))
+        except LLMRateLimitError as exc:
+            wait = int(exc.retry_after) if exc.retry_after else None
+            wait_msg = f" Podes aguardar {wait} segundos" if wait else ""
+            st.error(
+                f"Limite de pedidos da API Groq atingido.{wait_msg} ou correr o modelo localmente para não teres limite."
+            )
+            response_text = ""
+        except LLMConnectionError as exc:
+            st.error(f"Erro ao ligar ao modelo: {exc}")
             response_text = ""
 
     if chunks:

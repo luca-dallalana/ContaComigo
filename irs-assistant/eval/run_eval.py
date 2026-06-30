@@ -29,7 +29,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from generation.client_factory import get_generation_client
-from generation.ollama_client import OllamaConnectionError
+from generation.errors import LLMConnectionError, LLMRateLimitError
 from generation.prompt import build_prompt
 from retrieval.bm25_search import bm25_search, build_bm25_index
 from retrieval.fusion import reciprocal_rank_fusion
@@ -105,7 +105,10 @@ def main() -> None:
         prompt = build_prompt(question, chunks)
         try:
             answer = "".join(client.generate(prompt, stream=False))
-        except OllamaConnectionError as exc:
+        except LLMRateLimitError as exc:
+            print(f"  RATE LIMIT: retry after {exc.retry_after}s")
+            answer = ""
+        except LLMConnectionError as exc:
             print(f"  ERROR generating answer: {exc}")
             answer = ""
 

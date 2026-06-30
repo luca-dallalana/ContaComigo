@@ -20,7 +20,7 @@ VECTOR_WEIGHT: float = float(os.environ.get("VECTOR_WEIGHT", 0.7))
 BM25_WEIGHT: float = float(os.environ.get("BM25_WEIGHT", 0.3))
 
 from generation.client_factory import get_generation_client
-from generation.ollama_client import OllamaConnectionError
+from generation.errors import LLMConnectionError, LLMRateLimitError
 from generation.prompt import build_prompt
 from retrieval.bm25_search import build_bm25_index, bm25_search
 from retrieval.fusion import reciprocal_rank_fusion
@@ -76,8 +76,12 @@ def main() -> None:
             try:
                 for token in client.generate(prompt, stream=True):
                     print(token, end="", flush=True)
-            except OllamaConnectionError as exc:
-                print(f"\nErro: {exc}")
+            except LLMRateLimitError as exc:
+                wait = int(exc.retry_after) if exc.retry_after else None
+                wait_msg = f" Aguarda {wait}s ou" if wait else ""
+                print(f"\nLimite de pedidos Groq atingido.{wait_msg} corre o modelo localmente para não teres limite.")
+            except LLMConnectionError as exc:
+                print(f"\nErro ao ligar ao modelo: {exc}")
             print("\n")
 
     finally:

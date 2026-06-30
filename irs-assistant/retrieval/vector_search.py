@@ -45,7 +45,7 @@ LIMIT %s
 """
 
 
-class OllamaConnectionError(RuntimeError):
+class LLMConnectionError(RuntimeError):
     """Raised when Ollama is unreachable after all retry attempts."""
 
 
@@ -84,7 +84,7 @@ def embed_query(text: str) -> list[float]:
         768-dimensional float vector representing the query.
 
     Raises:
-        OllamaConnectionError: if Ollama is unreachable after MAX_RETRIES attempts.
+        LLMConnectionError: if Ollama is unreachable after MAX_RETRIES attempts.
     """
     url = f"{OLLAMA_BASE_URL}{EMBED_ENDPOINT}"
     payload = {"model": EMBED_MODEL, "input": [text]}
@@ -106,7 +106,7 @@ def embed_query(text: str) -> list[float]:
             )
             time.sleep(RETRY_DELAYS[attempt])
 
-    raise OllamaConnectionError(OLLAMA_ERROR_MESSAGE) from last_exc
+    raise LLMConnectionError(OLLAMA_ERROR_MESSAGE) from last_exc
 
 
 def vector_search(

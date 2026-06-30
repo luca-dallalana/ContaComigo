@@ -36,8 +36,7 @@ OLLAMA_ERROR_MESSAGE: str = "Ollama não está a correr. Inicia com: ollama serv
 TEMPERATURE: float = 0.1
 
 
-class OllamaConnectionError(RuntimeError):
-    """Raised when Ollama is unreachable or fails to respond after all retries."""
+from generation.errors import LLMConnectionError
 
 
 class OllamaClient:
@@ -57,7 +56,7 @@ class OllamaClient:
             768-dimensional float vector.
 
         Raises:
-            OllamaConnectionError: if Ollama is unreachable after MAX_RETRIES attempts.
+            LLMConnectionError: if Ollama is unreachable after MAX_RETRIES attempts.
         """
         url = f"{OLLAMA_BASE_URL}{EMBED_ENDPOINT}"
         payload = {"model": EMBED_MODEL, "input": [text]}
@@ -79,7 +78,7 @@ class OllamaClient:
                 )
                 time.sleep(RETRY_DELAYS[attempt])
 
-        raise OllamaConnectionError(OLLAMA_ERROR_MESSAGE) from last_exc
+        raise LLMConnectionError(OLLAMA_ERROR_MESSAGE) from last_exc
 
     def generate(
         self, prompt: str, stream: bool = True
@@ -87,7 +86,7 @@ class OllamaClient:
         """Generate a response from the configured language model.
 
         This is a generator function — nothing executes until the caller
-        begins iterating. OllamaConnectionError is therefore raised during
+        begins iterating. LLMConnectionError is therefore raised during
         iteration, not at call time. Callers must wrap the `for token in
         client.generate(...)` loop in try/except, not the call itself.
 
@@ -103,7 +102,7 @@ class OllamaClient:
             Individual text tokens (streaming) or the full response (non-streaming).
 
         Raises:
-            OllamaConnectionError: on HTTP or connection errors.
+            LLMConnectionError: on HTTP or connection errors.
         """
         url = f"{OLLAMA_BASE_URL}{GENERATE_ENDPOINT}"
         payload = {
@@ -126,14 +125,14 @@ class OllamaClient:
                         if data.get("done") is False:
                             yield data["response"]
             except (httpx.HTTPStatusError, httpx.RequestError) as exc:
-                raise OllamaConnectionError(OLLAMA_ERROR_MESSAGE) from exc
+                raise LLMConnectionError(OLLAMA_ERROR_MESSAGE) from exc
         else:
             try:
                 response = httpx.post(url, json=payload, timeout=GENERATE_TIMEOUT)
                 response.raise_for_status()
                 yield response.json()["response"]
             except (httpx.HTTPStatusError, httpx.RequestError) as exc:
-                raise OllamaConnectionError(OLLAMA_ERROR_MESSAGE) from exc
+                raise LLMConnectionError(OLLAMA_ERROR_MESSAGE) from exc
 
     def health_check(self) -> bool:
         """Check that Ollama is running and both required models are installed.
