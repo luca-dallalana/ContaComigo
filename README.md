@@ -4,11 +4,11 @@ A RAG (Retrieval-Augmented Generation) chatbot that answers Portuguese income ta
 
 ## Motivation
 
-Navigating Portuguese tax law is hard. The official AT portal has a chatbot, but it consistently fails on specific questions — giving generic answers, hallucinating rules, or simply refusing to answer. Tax professionals are expensive and not always accessible. The CIRS (Código do IRS) alone runs to hundreds of articles.
+Navigating Portuguese tax law is hard. The official AT portal has a chatbot, but it consistently fails on specific questions, giving generic answers or simply refusing to answer. Tax professionals are expensive and not always accessible. The CIRS (Código do IRS) alone runs to hundreds of articles.
 
 The goal was to build a system that:
 - Answers specific IRS questions correctly, citing the exact legal source
-- Is grounded exclusively in official AT documents — no hallucination
+- Is grounded exclusively in official AT documents, no hallucination
 - Is cheap to run (Groq free tier covers normal conversational usage)
 - Is verifiable: every answer links back to the original PDF at the exact page
 
@@ -47,7 +47,7 @@ Answer + source citations + PDF links (page-accurate)
 
 **Stack:**
 - **Vector DB:** PostgreSQL + pgvector (HNSW index, cosine similarity)
-- **Embeddings:** `nomic-embed-text` via Ollama — runs locally, no API cost, 768-dim vectors
+- **Embeddings:** `nomic-embed-text` via Ollama, runs locally, no API cost, 768-dim vectors
 - **BM25:** Custom in-database BM25 implementation for keyword recall
 - **Fusion:** Reciprocal Rank Fusion (RRF) combining vector and BM25 rankings
 - **Generation:** Groq API (`llama-3.3-70b-versatile`) or local Ollama (`llama3.1:8b`)
@@ -78,7 +78,7 @@ The core challenge in legal RAG is that questions use natural language while sou
 RRF score = (VECTOR_WEIGHT / (rank_v + 60)) + (BM25_WEIGHT / (rank_b + 60))
 ```
 
-The constant 60 comes from the original RRF paper (Cormack et al., 2009) where it was empirically tuned on IR benchmarks. It acts as a smoothing factor — without it, `1/rank` makes the top result dominate heavily (rank 1 scores 1.0, rank 2 scores 0.5). With `+60`, ranks 1 and 2 score `1/61` and `1/62` respectively, making fusion more democratic: a result ranking 2nd in both methods can outscore one that ranks 1st in only one.
+The constant 60 comes from the original RRF paper (Cormack et al., 2009) where it was empirically tuned on IR benchmarks. It acts as a smoothing factor, without it, `1/rank` makes the top result dominate heavily (rank 1 scores 1.0, rank 2 scores 0.5). With `+60`, ranks 1 and 2 score `1/61` and `1/62` respectively, making fusion more democratic: a result ranking 2nd in both methods can outscore one that ranks 1st in only one.
 
 **Tuned parameters:**
 - `VECTOR_WEIGHT=0.7`, `BM25_WEIGHT=0.3` — vector dominates for semantic recall
@@ -105,7 +105,7 @@ Equal weights (0.5/0.5) fixed keyword recall but broke semantic recall for Guia 
 | llama3.1:8b (local Ollama) | 35/35 | ~60% — frequent hallucination despite strict prompt |
 | llama-3.3-70b-versatile (Groq) | 35/35 | ~100% — context-only, well-sourced |
 
-The automated eval metric (retrieval hit + non-empty answer) masks the quality gap entirely — both models score 35/35. Manual review of every answer exposed ~14 factually wrong responses from the 8b model: invented tax rates, wrong income categories (e.g. saying pensions are Category A instead of H), wrong deduction limits, hallucinated values with no basis in the retrieved chunks.
+The automated eval metric (retrieval hit + non-empty answer) masks the quality gap entirely, both models score 35/35. Manual review of every answer exposed ~14 factually wrong responses from the 8b model: invented tax rates, wrong income categories (e.g. saying pensions are Category A instead of H), wrong deduction limits, hallucinated values with no basis in the retrieved chunks.
 
 The 70b model reliably follows context-only constraints and every manually verified answer was correct and cited the exact article.
 
@@ -119,7 +119,7 @@ Iterated from a basic instruction prompt to an 8-rule strict prompt:
 - Required fallback phrase when context is insufficient
 - Mandatory source citation (document + article) for every claim
 
-The strict prompt meaningfully improved 70b output. For 8b, it helped partially but the model continued hallucinating on specific numerical facts — a model capability issue, not a prompt design issue.
+The strict prompt meaningfully improved 70b output. For 8b, it helped partially but the model continued hallucinating on specific numerical facts, a model capability issue, not a prompt design issue.
 
 ### Infrastructure
 
@@ -150,24 +150,35 @@ python eval/run_eval.py --failed-from eval/results.json
 
 ## Running Locally
 
-### Prerequisites
+### Quickstart
 
-- Docker (for PostgreSQL + pgvector)
-- [Ollama](https://ollama.com) (for embeddings)
-- Python 3.11+
-- A [Groq API key](https://console.groq.com) (free tier is sufficient for normal usage)
-
-### Setup
+Clone the repo and run the setup script for your OS, it installs all dependencies, configures the database, downloads documents, and starts the app:
 
 ```bash
 git clone https://github.com/luca-dallalana/ContaComigo.git
 cd ContaComigo
 
+# macOS
+bash setup_mac.sh
+
+# Linux
+bash setup_linux.sh
+```
+
+The script will prompt for a PostgreSQL username, password, and your Groq API key. Get a free Groq key at [console.groq.com](https://console.groq.com) → sign up → API Keys → Create API Key.
+
+Open http://localhost:8501.
+
+### Manual setup
+
+If you prefer to set up manually:
+
+```bash
 # Start the database
 docker compose up -d
 
 # Install dependencies
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
@@ -176,17 +187,16 @@ ollama pull nomic-embed-text
 
 # Configure environment
 cp .env.example .env
-# Get a free Groq API key at https://console.groq.com → sign up → API Keys → Create API Key
-# Add it to .env: GROQ_API_KEY=your_key_here
+# Fill in POSTGRES_USER, POSTGRES_PASSWORD, and GROQ_API_KEY in .env
+# Get a free Groq key at https://console.groq.com → API Keys → Create API Key
 
 # Download documents and build the vector index (~2-3 min)
 python scripts/ingest.py
+python scripts/insert_curated_chunks.py
 
 # Run the app
 streamlit run app/streamlit_app.py
 ```
-
-Open http://localhost:8501.
 
 ### Running with a local model (no Groq account required)
 
@@ -269,4 +279,4 @@ ContaComigo/
 
 **Why 70b over 8b?** Tax law is a domain where factual precision matters. A wrong deduction limit or income category classification is worse than no answer. The 70b model reliably suppresses prior knowledge in favour of retrieved context; 8b cannot do this consistently even with strict prompting.
 
-**Why chunk by article?** Each CIRS or EBF article is a discrete legal unit with a specific scope. Chunking by article preserves legal coherence — a chunk about Article 78-C contains exactly that topic, not a fragment that starts mid-rule. Long articles are split into overlapping sub-chunks to stay within embedding context limits.
+**Why chunk by article?** Each CIRS or EBF article is a discrete legal unit with a specific scope. Chunking by article preserves legal coherence, a chunk about Article 78-C contains exactly that topic, not a fragment that starts mid-rule. Long articles are split into overlapping sub-chunks to stay within embedding context limits.
