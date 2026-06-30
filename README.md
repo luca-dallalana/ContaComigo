@@ -105,11 +105,9 @@ Equal weights (0.5/0.5) fixed keyword recall but broke semantic recall for Guia 
 | llama3.1:8b (local Ollama) | 35/35 | ~60% — frequent hallucination despite strict prompt |
 | llama-3.3-70b-versatile (Groq) | 35/35 | ~100% — context-only, well-sourced |
 
-The automated eval metric (retrieval hit + non-empty answer) masks the quality gap entirely, both models score 35/35. Manual review of every answer exposed ~14 factually wrong responses from the 8b model: invented tax rates, wrong income categories (e.g. saying pensions are Category A instead of H), wrong deduction limits, hallucinated values with no basis in the retrieved chunks.
+The eval metric counts a question as passed if retrieval hit the right source and the model generated a non-empty answer. Both models pass 35/35 on that basis. But manual review of every answer exposed ~14 factually wrong responses from the 8b model, invented tax rates, wrong income categories. The retrieval was correct; the model just couldn't reason well enough with the information it received. The 70b model handles this reliably: every manually verified answer was correct and cited the exact article.
 
-The 70b model reliably follows context-only constraints and every manually verified answer was correct and cited the exact article.
-
-**Key finding:** Pass rate on a recall-based eval is not a good proxy for factual accuracy. Real quality gaps in legal RAG only surface through manual review.
+**Key finding:** Pass rate on a retrieval + non-empty-answer eval is not a proxy for factual accuracy. You need a model that can reason with what it retrieves, not just generate something.
 
 ### Prompt Engineering
 
