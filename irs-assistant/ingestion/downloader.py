@@ -55,22 +55,22 @@ class DocumentSource:
 DOCUMENT_SOURCES: list[DocumentSource] = [
     DocumentSource(
         url="https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/Cod_download/Documents/CIRS.pdf",
-        filename="cirs_2024.pdf",
+        filename="cirs_2025.pdf",
         source_doc_name="Código do IRS (CIRS)",
-        fiscal_year=2024,
+        fiscal_year=2025,
         doc_type=DocType.PDF,
     ),
     DocumentSource(
-        url="https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Folhetos_informativos/Documents/IRS_deducoes_2024.pdf",
-        filename="guia_deducoes_irs_2024.pdf",
-        source_doc_name="Guia de Deduções IRS 2024",
-        fiscal_year=2024,
+        url="https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Folhetos_informativos/Documents/IRS_deducoes_2025.pdf",
+        filename="guia_deducoes_irs_2025.pdf",
+        source_doc_name="Guia de Deduções IRS 2025",
+        fiscal_year=2025,
         doc_type=DocType.PDF,
     ),
     # High priority: deadlines and tax calendar
     DocumentSource(
         url="https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Folhetos_informativos/Documents/IRS_2025_Principais_prazos_2026.pdf",
-        filename="irs_prazos_2025.pdf",
+        filename="irs_prazos_2026.pdf",
         source_doc_name="Principais Prazos IRS 2025",
         fiscal_year=2025,
         doc_type=DocType.CALENDAR,
@@ -78,9 +78,9 @@ DOCUMENT_SOURCES: list[DocumentSource] = [
     # Medium priority: tax benefits statute and administrative guidance
     DocumentSource(
         url="https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/Cod_download/Documents/EBF.pdf",
-        filename="ebf_2024.pdf",
+        filename="ebf_2025.pdf",
         source_doc_name="Estatuto dos Benefícios Fiscais (EBF)",
-        fiscal_year=2024,
+        fiscal_year=2025,
         doc_type=DocType.PDF,
     ),
     DocumentSource(
