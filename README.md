@@ -176,7 +176,8 @@ ollama pull nomic-embed-text
 
 # Configure environment
 cp .env.example .env
-# Add your GROQ_API_KEY to .env
+# Get a free Groq API key at https://console.groq.com → sign up → API Keys → Create API Key
+# Add it to .env: GROQ_API_KEY=your_key_here
 
 # Download documents and build the vector index (~2-3 min)
 python scripts/ingest.py
