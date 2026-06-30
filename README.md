@@ -267,7 +267,6 @@ ContaComigo/
 | `TOP_K` | `12` | Candidates per retrieval method before RRF fusion |
 | `VECTOR_WEIGHT` | `0.7` | RRF weight for vector search |
 | `BM25_WEIGHT` | `0.3` | RRF weight for BM25 |
-| `FEEDBACK_DB` | `feedback.sqlite` | Path to SQLite feedback store |
 
 ## Key Design Decisions
 
