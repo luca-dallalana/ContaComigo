@@ -25,7 +25,6 @@ BM25_WEIGHT: float = float(os.environ.get("BM25_WEIGHT", 0.3))
 INFERENCE_BACKEND: str = os.environ.get("INFERENCE_BACKEND", "ollama").lower()
 GENERATION_MODEL: str = os.environ.get("GENERATION_MODEL", "llama3.1:8b")
 
-from feedback.store import init_db, save_feedback
 from generation.client_factory import get_generation_client
 from generation.errors import LLMConnectionError, LLMRateLimitError
 from generation.prompt import build_prompt
@@ -34,8 +33,6 @@ from retrieval.fusion import reciprocal_rank_fusion
 from retrieval.vector_search import LLMConnectionError as EmbedConnectionError
 from retrieval.vector_search import embed_query, vector_search
 
-FEEDBACK_DB: str = os.environ.get("FEEDBACK_DB", "feedback.sqlite")
-init_db(FEEDBACK_DB)
 
 SOURCE_PDF_URLS: dict[str, str] = {
     "Código do IRS (CIRS)": "https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/Cod_download/Documents/CIRS.pdf",
@@ -306,8 +303,6 @@ client, conn, bm25_index, chunk_ids = _get_resources()
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
-if "rated" not in st.session_state:
-    st.session_state["rated"] = set()
 
 if not st.session_state["messages"] and "pending_question" not in st.session_state:
     st.markdown(
@@ -325,18 +320,6 @@ if not st.session_state["messages"] and "pending_question" not in st.session_sta
 for i, msg in enumerate(st.session_state["messages"]):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-    if msg["role"] == "assistant" and i not in st.session_state["rated"]:
-        col1, col2, _ = st.columns([1, 1, 8])
-        with col1:
-            if st.button("👍", key=f"up_{i}", help="Resposta útil"):
-                save_feedback(FEEDBACK_DB, msg["question"], msg["content"], msg["sources"], 1)
-                st.session_state["rated"].add(i)
-                st.rerun()
-        with col2:
-            if st.button("👎", key=f"down_{i}", help="Resposta não útil"):
-                save_feedback(FEEDBACK_DB, msg["question"], msg["content"], msg["sources"], -1)
-                st.session_state["rated"].add(i)
-                st.rerun()
 
 question = st.chat_input("Faz uma pergunta sobre IRS...")
 if not question:
@@ -388,3 +371,18 @@ if question:
             f"{c.source_doc} — {c.article or 'Secção geral'}" for c in chunks
         ],
     })
+
+st.markdown(
+    """
+    <script>
+    (function() {
+        function focusChatInput() {
+            const el = window.parent.document.querySelector('[data-testid="stChatInput"] textarea');
+            if (el) { el.focus(); } else { setTimeout(focusChatInput, 100); }
+        }
+        focusChatInput();
+    })();
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
