@@ -52,29 +52,98 @@ EXAMPLE_QUESTIONS: list[str] = [
     "O que é o mínimo de existência?",
 ]
 
+BASE_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display&display=swap');
+
+h1, h2, h3 {
+    font-family: 'DM Serif Display', Georgia, serif !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.stApp, [data-testid="stAppViewContainer"],
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stChatMessageContent"] p,
+section[data-testid="stSidebar"],
+[data-testid="stChatInput"] textarea,
+.stButton > button, label, .stCaption {
+    font-family: 'DM Sans', system-ui, sans-serif !important;
+}
+
+.stButton > button {
+    border-radius: 2px !important;
+}
+
+[data-testid="stChatInput"] textarea {
+    border-radius: 2px !important;
+}
+
+[data-testid="stChatMessageAvatarCustom"],
+[data-testid="stChatMessageAvatarUser"],
+[data-testid="stChatMessageAvatarAssistant"] {
+    display: none !important;
+}
+
+[data-testid="stChatMessage"] { background-color: transparent !important; }
+[data-testid="stChatMessageContent"] {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+[data-testid="stChatMessageAvatarAssistant"] ~ [data-testid="stChatMessageContent"] {
+    border-left: 2px solid #B5800E !important;
+    padding-left: 18px !important;
+}
+
+[data-testid="stChatInput"] {
+    box-shadow: 0 0 15px rgba(0,0,0,0.06) !important;
+    transition: box-shadow 0.2s !important;
+}
+[data-testid="stChatInput"]:focus-within {
+    box-shadow: 0 0 25px rgba(0,0,0,0.13) !important;
+}
+</style>
+"""
+
 DARK_CSS = """
 <style>
-.stApp, [data-testid="stAppViewContainer"] { background-color: #0E1117 !important; }
-section[data-testid="stSidebar"] > div:first-child { background-color: #161B2E !important; }
-[data-testid="stChatMessageContent"] { background-color: #1A1F2E !important; }
-[data-testid="stChatInput"] textarea {
-    background-color: #1A1F2E !important;
-    color: #E8ECF4 !important;
+.stApp, [data-testid="stAppViewContainer"] { background-color: #1A1714 !important; }
+header[data-testid="stHeader"], [data-testid="stHeader"] { background-color: #1A1714 !important; }
+section[data-testid="stSidebar"] > div:first-child { background-color: #201B16 !important; }
+[data-testid="stChatMessage"] { background-color: transparent !important; }
+[data-testid="stChatMessageAvatarCustom"],
+[data-testid="stChatMessageAvatarUser"],
+[data-testid="stChatMessageAvatarAssistant"] {
+    display: none !important;
 }
-[data-testid="stChatInput"] textarea::placeholder { color: #6B7A99 !important; }
+[data-testid="stChatMessageContent"] {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+[data-testid="stChatMessageAvatarAssistant"] ~ [data-testid="stChatMessageContent"] {
+    border-left: 2px solid #B5800E !important;
+    padding-left: 18px !important;
+}
+[data-testid="stChatInput"] textarea {
+    background-color: #251F1A !important;
+    color: #EDE5D8 !important;
+}
+[data-testid="stChatInput"] textarea::placeholder { color: #7A6E65 !important; }
 [data-testid="stChatInput"],
 [data-testid="stChatInput"] > div,
 [data-testid="stChatInput"] > div > div {
-    background-color: #1A1F2E !important;
-    border-color: #2A3050 !important;
+    background-color: #251F1A !important;
+    border-color: #3D3228 !important;
     border-width: 1px !important;
     box-shadow: none !important;
     outline: none !important;
 }
 [data-testid="stChatInput"] button {
-    background-color: #1B6CA8 !important;
+    background-color: #B5800E !important;
     color: #FFFFFF !important;
-    border-color: #1B6CA8 !important;
+    border-color: #B5800E !important;
 }
 [data-testid="stBottom"],
 [data-testid="stBottom"] > div,
@@ -85,17 +154,41 @@ section[data-testid="stSidebar"] > div:first-child { background-color: #161B2E !
 .stChatFloatingInputContainer > div,
 [data-testid="stChatInputContainer"],
 [data-testid="stChatInputContainer"] > div {
-    background-color: #0E1117 !important;
-    border-color: #2A3050 !important;
+    background-color: #1A1714 !important;
+    border-color: #3D3228 !important;
     box-shadow: none !important;
 }
-.stButton > button { background-color: #1A1F2E !important; color: #C8D0E0 !important; border-color: #2A3050 !important; }
-[data-testid="stExpander"] { background-color: #1A1F2E !important; border-color: #2A3050 !important; }
-[data-testid="stExpanderDetails"] { background-color: #1A1F2E !important; }
-hr { border-color: #2A3050 !important; }
-p, li, label, .stCaption, .stMarkdown { color: #C8D0E0 !important; }
-h1, h2, h3 { color: #E8ECF4 !important; }
-code { background-color: #1A1F2E !important; color: #7EB8F7 !important; }
+.stButton > button { background-color: #251F1A !important; color: #C5B8A8 !important; border-color: #3D3228 !important; }
+[data-testid="stExpander"] { background-color: #251F1A !important; border-color: #3D3228 !important; }
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] > summary,
+[data-testid="stExpander"] details > summary,
+details[data-testid="stExpander"] > summary {
+    background-color: #251F1A !important;
+    color: #C5B8A8 !important;
+    border-color: #3D3228 !important;
+}
+[data-testid="stExpanderDetails"] { background-color: #251F1A !important; }
+hr { border-color: #3D3228 !important; }
+p, li, label, .stCaption, .stMarkdown { color: #C5B8A8 !important; }
+h1, h2, h3 { color: #F5EDE0 !important; }
+code { background-color: #251F1A !important; color: #D4A840 !important; }
+a { color: #D4A840 !important; }
+section[data-testid="stSidebar"] > div > div:first-child,
+section[data-testid="stSidebar"] > div > div:first-child *,
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] *,
+[data-testid="collapsedControl"],
+[data-testid="collapsedControl"] * {
+    opacity: 1 !important;
+}
+section[data-testid="stSidebar"] > div > div:first-child svg,
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="collapsedControl"] svg {
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+}
 </style>
 """
 
@@ -113,24 +206,31 @@ def _render_source_card(idx: int, chunk, dark: bool = False) -> None:
     page_str = f" &nbsp;·&nbsp; p.&nbsp;{chunk.page_number}" if chunk.page_number else ""
     content_escaped = chunk.content.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    card_bg = "#1E2A3A" if dark else "#F0F4F8"
-    content_color = "#9EB8D8" if dark else "#555"
-    link_color = "#5BA3E8" if dark else "#1B6CA8"
+    card_bg = "#251F1A" if dark else "#F5EDE0"
+    content_color = "#A89880" if dark else "#4A4239"
+    link_color = "#D4A840" if dark else "#8B6210"
+    mono = "'DM Mono','Courier New',monospace"
+    # neubrutalism offset shadow from 21st.dev card variants
+    shadow = "3px 3px 0px 0px rgba(181,128,14,0.28)" if not dark else "3px 3px 0px 0px rgba(181,128,14,0.18)"
+    border = "0.5px solid rgba(181,128,14,0.45)" if not dark else "0.5px solid rgba(181,128,14,0.3)"
 
     if pdf_link:
         title_html = (
             f'<a href="{pdf_link}" target="_blank" '
-            f'style="color:{link_color};text-decoration:none;font-weight:600;">'
+            f'style="color:{link_color};text-decoration:none;font-family:{mono};font-size:0.78em;letter-spacing:0.03em;">'
             f'[{idx}] {chunk.source_doc} — {label}</a>{page_str}'
         )
     else:
-        title_html = f'<span style="font-weight:600;color:{link_color};">[{idx}] {chunk.source_doc} — {label}</span>{page_str}'
+        title_html = (
+            f'<span style="font-family:{mono};font-size:0.78em;letter-spacing:0.03em;color:{link_color};">'
+            f'[{idx}] {chunk.source_doc} — {label}</span>{page_str}'
+        )
 
     st.markdown(
         f"""
-        <div style="border-left:3px solid #1B6CA8;padding:10px 14px;margin:8px 0;
-                    background-color:{card_bg};border-radius:0 6px 6px 0;">
-            <div style="font-size:0.9em;margin-bottom:6px;">{title_html}</div>
+        <div style="border:{border};padding:10px 14px;margin:8px 0;
+                    background-color:{card_bg};box-shadow:{shadow};">
+            <div style="margin-bottom:6px;">{title_html}</div>
             <div style="font-size:0.82em;color:{content_color};line-height:1.6;">{content_escaped}</div>
         </div>
         """,
@@ -154,12 +254,13 @@ def _get_resources():
 
 
 st.set_page_config(page_title="Assistente IRS", layout="centered")
+st.markdown(BASE_CSS, unsafe_allow_html=True)
 
 with st.sidebar:
     st.markdown("### Assistente IRS")
     st.caption("Informação fiscal portuguesa com base em documentos oficiais da AT.")
     st.divider()
-    dark_mode = st.toggle("Modo escuro", value=False)
+    dark_mode = st.toggle("Modo escuro", value=True)
     st.divider()
     backend_label = "Groq Cloud" if INFERENCE_BACKEND == "groq" else "Ollama (local)"
     st.markdown(f"**Modelo:** `{GENERATION_MODEL}`")
@@ -183,7 +284,22 @@ with st.sidebar:
 if dark_mode:
     st.markdown(DARK_CSS, unsafe_allow_html=True)
 
-st.title("Assistente IRS")
+st.markdown(
+    """
+    <h1 style="font-family:'DM Serif Display',Georgia,serif;font-weight:400;
+               letter-spacing:-0.01em;margin-bottom:0.25rem;">
+      <span style="position:relative;display:inline-block;padding-bottom:10px;">
+        Assistente IRS
+        <svg style="position:absolute;width:110%;height:18px;bottom:-1px;left:-5%;"
+             viewBox="0 0 140 22" preserveAspectRatio="none">
+          <path d="M4 15 Q 70 22, 136 13" stroke="#B5800E" stroke-width="2.5"
+                stroke-linecap="round" fill="none"/>
+        </svg>
+      </span>
+    </h1>
+    """,
+    unsafe_allow_html=True,
+)
 st.caption("Código do IRS 2025 · Guia de Deduções IRS 2025")
 
 client, conn, bm25_index, chunk_ids = _get_resources()
@@ -193,7 +309,7 @@ if "messages" not in st.session_state:
 if "rated" not in st.session_state:
     st.session_state["rated"] = set()
 
-if not st.session_state["messages"]:
+if not st.session_state["messages"] and "pending_question" not in st.session_state:
     st.markdown(
         "Olá! Sou um assistente especializado em IRS português. "
         "Posso ajudar-te com questões sobre deduções, categorias de rendimento, prazos e muito mais."
