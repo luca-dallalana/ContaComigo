@@ -22,7 +22,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 MY_IP="$(curl -s ifconfig.me)"
 MY_CIDR="${MY_IP}/32"
 
-SSH_OPTS="-i $KEY_FILE -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=60"
+SSH_OPTS="-i $KEY_FILE -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=60"
 
 echo "==================================================================="
 echo " IRS Assistant — EC2 GPU Eval"
