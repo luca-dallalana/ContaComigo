@@ -19,13 +19,13 @@ if ! command -v brew &>/dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-# Python 3.11+
+# Python 3.13
 step "A verificar Python..."
-if ! python3 -c "import sys; assert sys.version_info >= (3, 11)" 2>/dev/null; then
-    step "A instalar Python 3.11..."
-    brew install python@3.11
+if ! command -v python3.13 &>/dev/null; then
+    step "A instalar Python 3.13..."
+    brew install python@3.13
 fi
-PYTHON=$(command -v python3.11 || command -v python3)
+PYTHON=$(command -v python3.13)
 
 # Docker
 step "A verificar Docker..."

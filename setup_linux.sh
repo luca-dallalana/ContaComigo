@@ -16,14 +16,14 @@ if [ "$EUID" -eq 0 ]; then
     error "Não corras este script como root. Usa um utilizador normal com sudo."
 fi
 
-# Python 3.11+
+# Python 3.13
 step "A verificar Python..."
-if ! python3 -c "import sys; assert sys.version_info >= (3, 11)" 2>/dev/null; then
-    step "A instalar Python 3.11..."
+if ! command -v python3.13 &>/dev/null; then
+    step "A instalar Python 3.13..."
     sudo apt-get update -qq
-    sudo apt-get install -y python3.11 python3.11-venv python3-pip
+    sudo apt-get install -y python3.13 python3.13-venv python3-pip
 fi
-PYTHON=$(command -v python3.11 || command -v python3)
+PYTHON=$(command -v python3.13)
 
 # Docker
 step "A verificar Docker..."
