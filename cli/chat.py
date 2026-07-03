@@ -28,7 +28,7 @@ from retrieval.vector_search import embed_query, vector_search
 
 BANNER = """
 Assistente IRS (Portugal)
-Documentos: Código do IRS 2024, Guia de Deduções IRS 2024
+Documentos: Código do IRS 2025, Guia de Deduções IRS 2025
 Escreve 'sair', 'exit' ou 'quit' para terminar.
 """
 EXIT_WORDS = {"sair", "exit", "quit"}

@@ -35,16 +35,16 @@
   expected_source: "Código do IRS (CIRS)"
 
 - question: "Quais são as despesas de saúde dedutíveis em IRS?"
-  expected_source: "Guia de Deduções IRS 2024"
+  expected_source: "Guia de Deduções IRS 2025"
 
 - question: "Que despesas com estabelecimentos de ensino são dedutíveis no IRS?"
-  expected_source: "Guia de Deduções IRS 2024"
+  expected_source: "Guia de Deduções IRS 2025"
 
 - question: "Posso deduzir despesas com lares e residências para idosos no IRS?"
-  expected_source: "Guia de Deduções IRS 2024"
+  expected_source: "Guia de Deduções IRS 2025"
 
 - question: "Como funciona a dedução de encargos com habitação no IRS?"
-  expected_source: "Guia de Deduções IRS 2024"
+  expected_source: "Guia de Deduções IRS 2025"
 
 - question: "É possível deduzir donativos e mecenato no IRS?"
   expected_source: "Estatuto dos Benefícios Fiscais (EBF)"
@@ -108,4 +108,4 @@
   expected_source: "Código do IRS (CIRS)"
 
 - question: "Tenho um filho dependente que frequenta o ensino universitário fora do concelho de residência. Posso deduzir rendas pagas?"
-  expected_source: "Guia de Deduções IRS 2024"
+  expected_source: "Guia de Deduções IRS 2025"
