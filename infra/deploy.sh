@@ -93,7 +93,6 @@ rsync -az --progress \
   --exclude='data/raw' \
   --exclude='.git' \
   --exclude='infra' \
-  --exclude='feedback.sqlite' \
   --exclude='eval/results*.json' \
   -e "ssh $SSH_OPTS" \
   "$PROJECT_ROOT/" \
@@ -143,11 +142,9 @@ POSTGRES_URL=postgresql://irs:irs@localhost:5432/irs_assistant
 OLLAMA_BASE_URL=http://localhost:11434
 EMBED_MODEL=nomic-embed-text:latest
 GENERATION_MODEL=$GENERATION_MODEL
-EMBED_DIMENSION=768
-TOP_K=5
+TOP_K=12
 VECTOR_WEIGHT=0.7
 BM25_WEIGHT=0.3
-FEEDBACK_DB=feedback.sqlite
 EOF
 
 ssh $SSH_OPTS ubuntu@"$IP" bash <<'REMOTE'
