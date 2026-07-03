@@ -12,28 +12,14 @@ error() { echo -e "${RED}ERRO:${NC} $1"; exit 1; }
 
 cd "$(dirname "$0")"
 
-if [ "$EUID" -eq 0 ]; then
-    error "Não corras este script como root. Usa um utilizador normal com sudo."
-fi
-
 # Python 3.13
-step "A verificar Python..."
-if ! command -v python3.13 &>/dev/null; then
-    step "A instalar Python 3.13..."
-    sudo apt-get update -qq
-    sudo apt-get install -y python3.13 python3.13-venv python3-pip
-fi
+step "A verificar Python 3.13..."
+command -v python3.13 &>/dev/null || error "Python 3.13 não encontrado. Instala em https://www.python.org/downloads/"
 PYTHON=$(command -v python3.13)
 
 # Docker
 step "A verificar Docker..."
-if ! command -v docker &>/dev/null; then
-    step "A instalar Docker..."
-    curl -fsSL https://get.docker.com | sudo sh
-    sudo usermod -aG docker "$USER"
-    warn "Adicionado ao grupo docker. Faz logout/login para aplicar, ou corre: newgrp docker"
-    newgrp docker
-fi
+command -v docker &>/dev/null || error "Docker não encontrado. Instala em https://docs.docker.com/engine/install/"
 if ! docker info &>/dev/null; then
     step "A iniciar Docker..."
     sudo systemctl start docker
@@ -42,14 +28,12 @@ fi
 
 # Ollama
 step "A verificar Ollama..."
-if ! command -v ollama &>/dev/null; then
-    step "A instalar Ollama..."
-    curl -fsSL https://ollama.com/install.sh | sh
-fi
+command -v ollama &>/dev/null || error "Ollama não encontrado. Instala em https://ollama.com"
 if ! pgrep -x "ollama" &>/dev/null; then
     step "A iniciar Ollama..."
     ollama serve &>/dev/null &
-    sleep 3
+    echo "A aguardar que o Ollama arranque..."
+    until ollama list &>/dev/null; do sleep 2; done
 fi
 
 # .env
@@ -64,9 +48,14 @@ if [ ! -f .env ]; then
     read -rsp "  Groq API Key (grátis em console.groq.com): " groq_key
     echo ""
 
-    sed -i "s|POSTGRES_USER=.*|POSTGRES_USER=${pg_user}|"         .env
-    sed -i "s|POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${pg_pass}|"  .env
-    sed -i "s|GROQ_API_KEY=.*|GROQ_API_KEY=${groq_key}|"           .env
+    python3 -c "
+import re, sys
+content = open('.env').read()
+content = re.sub(r'^POSTGRES_USER=.*', 'POSTGRES_USER=' + sys.argv[1], content, flags=re.M)
+content = re.sub(r'^POSTGRES_PASSWORD=.*', 'POSTGRES_PASSWORD=' + sys.argv[2], content, flags=re.M)
+content = re.sub(r'^GROQ_API_KEY=.*', 'GROQ_API_KEY=' + sys.argv[3], content, flags=re.M)
+open('.env', 'w').write(content)
+" "$pg_user" "$pg_pass" "$groq_key"
 else
     warn ".env já existe — a saltar configuração."
 fi
@@ -89,6 +78,10 @@ step "A instalar dependências Python..."
 # Modelo de embedding
 step "A descarregar o modelo de embedding (~1 GB)..."
 ollama pull nomic-embed-text
+
+# Inicializar base de dados
+step "A criar tabelas e índices..."
+.venv/bin/python scripts/init_db.py
 
 # Ingestão de documentos
 step "A descarregar e indexar documentos (~2-3 min)..."
