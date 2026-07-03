@@ -188,6 +188,9 @@ cp .env.example .env
 # Fill in POSTGRES_USER, POSTGRES_PASSWORD, and GROQ_API_KEY in .env
 # Get a free Groq key at https://console.groq.com → API Keys → Create API Key
 
+# Create tables and indexes
+python scripts/init_db.py
+
 # Download documents and build the vector index (~2-3 min)
 python scripts/ingest.py
 python scripts/insert_curated_chunks.py
@@ -219,10 +222,10 @@ python cli/chat.py
 ### Re-ingesting updated documents
 
 ```bash
-python scripts/ingest.py --force
+python scripts/ingest.py
 ```
 
-The ingest script downloads the latest versions of all documents directly from AT's canonical URLs.
+The script detects existing chunks and prompts before overwriting. It always pulls the latest versions from AT's canonical URLs.
 
 ## Project Structure
 
@@ -240,14 +243,18 @@ ContaComigo/
 │   ├── ollama_client.py   # Ollama client
 │   └── prompt.py          # Strict context-only system prompt
 ├── ingestion/
+│   ├── chunker.py         # Article splitter with overlap
 │   ├── downloader.py      # Document sources and AT URL mapping
+│   ├── embedder.py        # Ollama batch embedding + DB store
 │   └── parser.py          # PDF chunking by article
 ├── retrieval/
 │   ├── bm25_search.py     # In-database BM25
 │   ├── fusion.py          # Reciprocal Rank Fusion
 │   └── vector_search.py   # pgvector HNSW search
 ├── scripts/
-│   └── ingest.py          # End-to-end ingestion pipeline
+│   ├── init_db.py         # Creates tables, pgvector extension, indexes
+│   ├── ingest.py          # End-to-end ingestion pipeline
+│   └── insert_curated_chunks.py  # Hand-curated chunks for hard articles
 └── .env.example
 ```
 
@@ -256,12 +263,11 @@ ContaComigo/
 | Variable | Default | Description |
 |---|---|---|
 | `POSTGRES_URL` | — | PostgreSQL connection string |
-| `INFERENCE_BACKEND` | `groq` | `groq` or `ollama` |
+| `INFERENCE_BACKEND` | `ollama` | `groq` or `ollama` (`.env.example` ships with `groq` pre-set) |
 | `GROQ_API_KEY` | — | Required when using Groq |
 | `GENERATION_MODEL` | `llama-3.3-70b-versatile` | Model tag |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
 | `EMBED_MODEL` | `nomic-embed-text:latest` | Embedding model |
-| `EMBED_DIMENSION` | `768` | Embedding vector dimension |
 | `TOP_K` | `12` | Candidates per retrieval method before RRF fusion |
 | `VECTOR_WEIGHT` | `0.7` | RRF weight for vector search |
 | `BM25_WEIGHT` | `0.3` | RRF weight for BM25 |
